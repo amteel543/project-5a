@@ -10,6 +10,8 @@ import arrow  # Replacement for datetime, based on moment.js
 import acp_times  # Brevet time calculations
 import config
 
+from mypymongo import brevet_insert, brevet_fetch
+
 import logging
 
 ###
@@ -42,6 +44,43 @@ def page_not_found(error):
 #   These return JSON, rather than rendering pages.
 #
 ###############
+
+@app.route("/_fetch")
+
+def fetch():
+
+    try: 
+
+        time, distance, control_list = brevet_fetch()
+
+        return flask.jsonify(result = {"time": time, "distance": distance, "control_list": control_list}, status=1, message="Successfully fetched!")
+
+    except:
+
+        return flask.jsonify(result={}, status=0, message="Something went wrong!")
+
+@app.route("/_insert", methods=["POST"])
+
+def insert():
+
+    try:
+
+        input_json = request.json
+
+        time = input_json["time"]
+
+        distance = input_json["distance"]
+
+        control_list = input_json["control_list"] 
+
+        insertion = brevet_insert(time, distance, control_list)
+
+        return flask.jsonify(result={}, message="Inserted!", status=1, mongo_id=insertion)
+
+    except:
+        
+        return flask.jsonify(result={}, message="Something went wrong!", status=0, mongo_id='None')
+
 @app.route("/_calc_times")
 def _calc_times():
     """
