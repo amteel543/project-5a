@@ -65,6 +65,8 @@
                <div class="col-md-6">
                   <label>Begins at</label>
                   <input type="datetime-local" name="begin_date" id="begin_date" value="2021-01-01T00:00" />
+                  <button id="fetch">Display</button>
+                  <button id="insert">Submit</button>
                </div>
                <!-- columns 5 to 10 -->
             </div>
@@ -114,11 +116,9 @@
          <script type="text/javascript">
             var SCRIPT_ROOT = {{ request.script_root|tojson|safe }} ;
             var TIME_CALC_URL = SCRIPT_ROOT + "/_calc_times";
+            var FETCH_URL = SCRIPT_ROOT + "/_fetch";
+            var INSERT_URL = SCRIPT_ROOT + "/_insert";
 
-            // FIX ME!
-            // Right now, only the kilometers are passed
-            // you need to pass much more!
-            // View flask_brevets.py for details.
             function calc_times(control) {
               var km = control.find("input[name='km']").val();
 
@@ -148,7 +148,133 @@
             }
 
             $(document).ready(function(){
-             // Do the following when the page is finished loading
+
+                $("#insert").click(function(event) {
+
+                    event.preventDefault();
+
+                    var kilos = $("#brevet_dist_km").val();
+
+                    var start = $("#begin_date").val();
+
+                    var control_list = [];
+
+                    $('.control').each(function() {
+
+                        var control_item = $(this);
+
+                        var kilometers = control_item.find("input[name='km']").val();
+
+                        var open_t = control_item.find("input[name='open']").val();
+
+                        var close_t = control_item.find("input[name='close']").val();
+
+                        if (kilometers) {
+                           
+                           item_json = {"kilometers": kilometers, "open_t": open_t, "close_t": close_t};
+
+                           control_list.push(item_json);
+
+                           console.log(control_list);
+
+                        }
+
+                        else {
+
+                           console.log("No distance given!");
+                        }
+
+                    });
+
+                    var new_list = {"time": start, "distance": kilos, "control_list": control_list};
+
+                    console.log(new_list);
+
+                    $.ajax({
+
+                        dataType: 'json',
+
+                        contentType: "application/json",
+
+                        type: 'POST',
+
+                        url: INSERT_URL,
+
+                        data: JSON.stringify(new_list),
+
+                        success: function(data) {
+
+                            if (data.status == 1) {
+
+                                console.log("Successfully inserted! Response: ", data);
+
+                            }
+                            
+                            else {
+
+                                console.log("Insertion failed: ", data);
+
+                            }
+
+                        },
+
+                        error: function(err) {
+                        
+                            console.log("Error: ", err); }  
+                        
+                        });
+                     
+                  });
+
+                $("#fetch").click(function(event) {
+
+                    event.preventDefault();
+
+                    $.getJSON(FETCH_URL).done(function(data) {
+
+                        console.log(data);
+
+                        if (data.status == 1) {
+
+                           console.log("Successfully fetched: ", data);
+
+                           var start_date = $("#begin_date").val(data.result.time);
+
+                           var dis = $("brevet_dist_km").val(data.result.distance);
+
+                           var control_list = data.result.control_list;
+
+                           console.log(control_list);
+
+                           var num_items = control_list.length;
+
+                           $('.control').each(function(index) {
+
+                              if (index < num_items) {
+
+                                 var litem = $(this);
+
+                                 litem.find("input[name='km']").val(control_list[index].km);
+
+                                 litem.find("input[name='miles']").val(control_list[index].miles);
+
+                                 litem.find("input[name='open']").val(control_list[index].open);
+
+                                 litem.find("input[name='close']").val(control_list[index].close);
+                              }
+
+                           });
+                        }
+
+                        else {
+                           console.log("Fetch failed: ", data);
+                        }
+
+                    }).fail(function(err) {
+                       console.log("Error: ", err);
+                    });
+
+                });
 
                 $('input[name="miles"]').change(
                    function() {
