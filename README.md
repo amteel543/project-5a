@@ -1,51 +1,53 @@
-# UOCIS322 - Project 5 #
-Brevet time calculator with MongoDB!
+Author: Aaron Teel
 
-## Overview
+Contact Info: ateel@uoregon.edu
 
-You'll add a storage to your previous project using MongoDB and `docker-compose`.
-As we discussed, `docker-compose` makes it easier to create, manage and connect multiple container to create a single service comprised of different sub-services.
+Project Details: - This project is a web-based recreation of the ACP calculator used by RUSA, making use of MongoDB as a tool to store data values. The website, taking in the total race distance via a drop-down menu, taking in the start date via a date selector table, and taking the distances to the mid-race controls via a textbox with user input, will calculate the open and close times for each control that is passed into the grid, as well converting kilometers to miles and vice versa. The open times and close times will be displayed in the datetime format MM:DD HH:mm. There are also two buttons, 'Submit' and 'Display', which are the MongoDB functions. '
 
-Presently, there's only a placeholder directory for your Flask app, and a `docker-compose` configuration file. You will copy over `brevets/` from your completed project 4, add a MongoDB service to docker-compose and your Flask app. You will also add two buttons named `Submit` and `Display` to the webpage. `Submit` must store the information (brevet distance, start time, checkpoints and their opening and closing times) in the database (overwriting existing ones). `Display` will fetch the information from the database and fill in the form with them.
+                - HOW TO USE: 
+                    
+                    - Step 1: Build your docker image with the command "docker build -t <insert image name here> ."
 
-Recommended: Review [MongoDB README](MONGODB.md) and[Docker Compose README](COMPOSE.md).
+                    - Step 2: Run your docker image with the command "docker run -p 5001:5000 <image name>"
 
-## Tasks
+                    - Step 3: Open up a browser of your choosing and type into the search bar "http://localhost:5001" to boot up the web page
 
-1. Add two buttons `Submit` and `Display` in the ACP calculator page.
+                    - Step 4: Select a total race distance using the left-hand drop-down menu and select a start time using the right hand table
 
-	- Upon clicking the `Submit` button, the control times should be inserted into a MongoDB database, and the form should be cleared (reset) **without** refreshing the page.
+                    - Step 5: Type in control distance values into the text boxes below "KM" or "Miles", then either press ENTER or click into another text box to display the open and close times for that control distance
+    
+                    - Step 6: Click the 'Submit' button in the top right-hand corner of the screen to add the controls to the MongoDB database
 
-	- Upon clicking the `Display` button, the entries from the database should be filled into the existing page.
+                    - Step 7: Click the 'Display' button to see the values you put into the database 
 
-	- Handle error cases appropriately. For example, Submit should return an error if no control times are input. One can imagine many such cases: you'll come up with as many cases as possible.
+                - The open times and close times are calculated with the RUSA algorithm. This algorithm is as follows:
 
-2. An automated `nose` test suite with at least 2 test cases: at least one for for DB insertion and one for retrieval.
+                    - For calculating the open times:
 
-3. Update README.md with brevet control time calculation rules (you were supposed to do this for Project 4), and additional information regarding this project.
-	- This project will be peer-reviewed, so be thorough.
+                        - Step 1: Take in a control distance, total race (brevet) distance, and start time
 
-## Grading Rubric
+                        - Step 2: Calculate the hours and minutes that we need to shift by
 
-* If your code works as expected: 100 points. This includes:
-	* Front-end implementation (`Submit` and `Display`).
-	
-	* Back-end implementation (Connecting to MongoDB, insertion and selection).
-	
-	* AJAX interaction between the frontend and backend (AJAX for `Submit` and `Display`).
-	
-	* Updating `README` with a clear specification (including details from Project 4).
-	
-	* Handling errors correctly.
-	
-	* Writing at least 2 correct tests using nose (put them in `tests`, follow Project 3 if necessary), and all should pass.
+                            - Step 2a: For any control between 0 and 200 km, divide the control distance by the maximum speed as regulated by RUSA, which in this case is 34 km/hr. Take the whole number from this division and round it down to get the number of hours, then take the remainder and multiply it by 60 to get the number of minutes 
 
-* If DB operations do not work as expected (either submit fails to store information, or display fails to retrieve and show information correctly), 60 points will be docked.
+                            - Step 2b: For any control between 200 and 400 km, we must first calculate the time for the first 200 km with a speed of 34 km/hr, then add the time for the remaining distance to the control at a speed of 32 km/hr 
 
-* If database-related tests are not found in `brevets/tests/`, or are incomplete, or do not pass, 20 points will be docked.
+                            - Step 2c: For any control between 400 and 600 km, we must first calculate the time for the first 400 km,  then add the time for remaining distance to the control at a speed of 30 km/hr 
 
-* If docker does not build/run correctly, or the yaml file is not updated correctly, 5 will be assigned assuming README is updated.
+                            - Step 2d: For any control between 600 and 1000 km, we must first calculate the time for the first 600 km, then add the time for the remaining distance to the control at a speed of 28 km/hr 
 
-## Authors
+                        - Step 3: Once we have our hours and minutes, we must shift accordingly from our start time 
 
-Michal Young, Ram Durairajan. Updated by Ali Hassani.
+                    - For calculating the closing times:
+
+                        - Step 1: Take in a control distance, total race (brevet) distance, and a start time
+
+                        - Step 2: 
+
+                            - Step 2a: For any control under 60 km, we must divide the control distance by 20, then add 1 to get an extra hour, since we don't want the control to close before the start closes
+
+                            - Step 2b: For any control bewteen 60 and 600 km, we must divide the control distance by the minimum speed set by RUSA, which is 15 km/hr. We must then round down the whole number from this division to get the hours, then multiply the remainder by 60 to get the number of minutes
+
+                            - Step 2c: For any control between 600 and 1000 km, we must first calculate the time for the first 600 km with a speed of 15 km/hr, then add the time for the remaining distance to the control at a speed of 11.428 km/hr
+
+                        - Step 3: Once we have our hours and minutes, we must shift accordingly from our start time
