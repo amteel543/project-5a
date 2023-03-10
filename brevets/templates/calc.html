@@ -169,9 +169,11 @@
 
                         var close_t = control_item.find("input[name='close']").val();
 
+                        var miles = control_item.find("input[name='miles']").val();
+
                         if (kilometers) {
                            
-                           item_json = {"kilometers": kilometers, "open_t": open_t, "close_t": close_t};
+                           item_json = {"miles": miles, "kilometers": kilometers, "open_t": open_t, "close_t": close_t};
 
                            control_list.push(item_json);
 
@@ -254,13 +256,13 @@
 
                                  var litem = $(this);
 
-                                 litem.find("input[name='km']").val(control_list[index].km);
+                                 litem.find("input[name='km']").val(control_list[index].kilometers);
 
                                  litem.find("input[name='miles']").val(control_list[index].miles);
 
-                                 litem.find("input[name='open']").val(control_list[index].open);
+                                 litem.find("input[name='open']").val(control_list[index].open_t);
 
-                                 litem.find("input[name='close']").val(control_list[index].close);
+                                 litem.find("input[name='close']").val(control_list[index].close_t);
                               }
 
                            });
